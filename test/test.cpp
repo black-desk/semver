@@ -604,3 +604,21 @@ TEST_CASE("ranges with prerelase tags") {
     }
   }
 }
+
+TEST_CASE("ranges advanced") {
+  SECTION("hyphen ranges") {
+    constexpr std::string_view r1{"1.2.3 - 2.3.4"}; // ">=1.2.3 <=2.3.4"
+
+    constexpr version v1{"1.0.0"};
+    constexpr version v2{"1.2.3"};
+    constexpr version v3{"2.0.0"};
+    constexpr version v4{"2.3.4"};
+    constexpr version v5{"3.0.0"};
+
+    STATIC_REQUIRE_FALSE(range::satisfies(v1, r1));
+    STATIC_REQUIRE(range::satisfies(v2, r1));
+    STATIC_REQUIRE(range::satisfies(v3, r1));
+    STATIC_REQUIRE(range::satisfies(v4, r1));
+    STATIC_REQUIRE_FALSE(range::satisfies(v5, r1));
+  }
+}
