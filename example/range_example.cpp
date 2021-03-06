@@ -26,5 +26,13 @@ int main() {
     // For details see: https://github.com/npm/node-semver#prerelease-tags
     static_assert(range::satisfies("3.4.5-alpha.9"_version, r3, range::satisfies_option::include_prerelease));
 
+    constexpr std::string_view r4{"1.2.3 - 2.3.4"}; // ">=1.2.3 <=2.3.4"
+
+    static_assert(!range::satisfies({1, 0, 0}, r4));
+    static_assert(range::satisfies({1, 2, 3}, r4));
+    static_assert(range::satisfies({2, 0, 0}, r4));
+    static_assert(range::satisfies({2, 3, 4}, r4));
+    static_assert(!range::satisfies({3, 0, 0}, r4));
+
     return 0;
 }

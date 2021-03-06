@@ -516,18 +516,22 @@ class range {
 
     auto is_number = [&parser]() constexpr noexcept -> bool { return parser.current_token.type == range_token_type::number; };
 
+    auto is_hyphen = [&parser]() constexpr noexcept -> bool { return parser.current_token.type == range_token_type::hyphen; };
+
     const bool has_prerelease = ver.prerelease_type != prerelease::none;
 
     do {
       if (is_logical_or()) {
         parser.advance_token(range_token_type::logical_or);
+        parser.skip_whitespaces();
       }
 
       bool contains = true;
       bool allow_compare = include_prerelease;
 
-      while (is_operator() || is_number()) {
+      while (is_operator() || is_number() || is_hyphen()) {
         const auto range = parser.parse_range();
+        parser.skip_whitespaces();
         const bool equal_without_tags = equal_to(range.ver, ver, comparators_option::exclude_prerelease);
 
         if (has_prerelease && equal_without_tags) {
@@ -586,6 +590,7 @@ private:
 
   enum struct range_token_type : std::uint8_t {
     none,
+    space,
     number,
     range_operator,
     dot,
@@ -613,7 +618,7 @@ private:
 
         if (is_space(text[pos])) {
           advance(1);
-          continue;
+          return {range_token_type::space};
         }
 
         if (is_logical_or(text[pos])) {
@@ -725,17 +730,36 @@ private:
     }
 
     constexpr range_comparator parse_range() {
+      auto range_operator = range_operator::equal;
+
+      if (current_token.type == range_token_type::hyphen) {
+        range_operator = range_operator::less_or_equal;
+        advance_token(range_token_type::hyphen);
+        skip_whitespaces();
+      }
+
       if (current_token.type == range_token_type::number) {
         const auto version = parse_version();
-        return {range_operator::equal, version};
+        skip_whitespaces();
+        if (current_token.type == range_token_type::hyphen) {
+          range_operator = range_operator::greater_or_equal;
+        }
+        return {range_operator, version};
       } else if (current_token.type == range_token_type::range_operator) {
         const auto range_operator = current_token.op;
         advance_token(range_token_type::range_operator);
+        skip_whitespaces();
         const auto version = parse_version();
         return {range_operator, version};
       }
 
       return {range_operator::equal, version{}};
+    }
+
+    constexpr void skip_whitespaces() {
+      while (current_token.type == range_token_type::space) {
+        advance_token(range_token_type::space);
+      }
     }
 
     constexpr version parse_version() {
