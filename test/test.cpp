@@ -620,5 +620,11 @@ TEST_CASE("ranges advanced") {
     STATIC_REQUIRE(range::satisfies(v3, r1));
     STATIC_REQUIRE(range::satisfies(v4, r1));
     STATIC_REQUIRE_FALSE(range::satisfies(v5, r1));
+
+    constexpr std::string_view r2{"1.2.3-alpha.123 - 2.3.4"};
+    STATIC_REQUIRE_FALSE(range::satisfies("1.2.3-alpha.122"_version, r2));
+    STATIC_REQUIRE(range::satisfies("1.2.3-alpha.123"_version, r2));
+    STATIC_REQUIRE(range::satisfies("1.2.3-beta.1"_version, r2));
+    STATIC_REQUIRE_FALSE(range::satisfies("2.0.0-alpha.123"_version, r2));
   }
 }

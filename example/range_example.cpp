@@ -34,5 +34,8 @@ int main() {
     static_assert(range::satisfies({2, 3, 4}, r4));
     static_assert(!range::satisfies({3, 0, 0}, r4));
 
+    constexpr version v6{"1.2.4-alpha.123"};
+    range::satisfies(v6, r4);
+
     return 0;
 }
